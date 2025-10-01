@@ -1,0 +1,9 @@
+{
+  "name": "SnapURL Admin",
+  "short_name": "SnapURL",
+  "description": "URL Management Dashboard",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#2563eb"
+}

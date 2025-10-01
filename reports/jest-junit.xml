@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="15" failures="0" errors="0" time="3.681">
+  <testsuite name="Header Component" errors="0" failures="0" skipped="0" timestamp="2025-09-26T17:44:33" time="2.679" tests="15">
+    <testcase classname="Header Component renders header with all main elements" name="Header Component renders header with all main elements" time="0.089">
+    </testcase>
+    <testcase classname="Header Component toggles sidebar when menu button is clicked" name="Header Component toggles sidebar when menu button is clicked" time="0.05">
+    </testcase>
+    <testcase classname="Header Component displays correct page title based on current path" name="Header Component displays correct page title based on current path" time="0.014">
+    </testcase>
+    <testcase classname="Header Component shows breadcrumb navigation for nested routes" name="Header Component shows breadcrumb navigation for nested routes" time="0.013">
+    </testcase>
+    <testcase classname="Header Component handles search input and results correctly" name="Header Component handles search input and results correctly" time="0.249">
+    </testcase>
+    <testcase classname="Header Component navigates to correct URL when search result is clicked" name="Header Component navigates to correct URL when search result is clicked" time="0.198">
+    </testcase>
+    <testcase classname="Header Component supports keyboard navigation in search results" name="Header Component supports keyboard navigation in search results" time="0.121">
+    </testcase>
+    <testcase classname="Header Component toggles notifications dropdown when notifications button is clicked" name="Header Component toggles notifications dropdown when notifications button is clicked" time="0.107">
+    </testcase>
+    <testcase classname="Header Component toggles user menu dropdown when user menu button is clicked" name="Header Component toggles user menu dropdown when user menu button is clicked" time="0.046">
+    </testcase>
+    <testcase classname="Header Component displays header correctly without export functionality" name="Header Component displays header correctly without export functionality" time="0.011">
+    </testcase>
+    <testcase classname="Header Component shows mobile menu button with correct classes" name="Header Component shows mobile menu button with correct classes" time="0.014">
+    </testcase>
+    <testcase classname="Header Component applies correct theme classes to header" name="Header Component applies correct theme classes to header" time="0.012">
+    </testcase>
+    <testcase classname="Header Component renders search component without errors" name="Header Component renders search component without errors" time="0.199">
+    </testcase>
+    <testcase classname="Header Component has proper ARIA labels for interactive elements" name="Header Component has proper ARIA labels for interactive elements" time="0.011">
+    </testcase>
+    <testcase classname="Header Component renders consistently across re-renders" name="Header Component renders consistently across re-renders" time="0.011">
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,23 @@
+{
+  "/analytics/url/[id]/page": "app/analytics/url/[id]/page.js",
+  "/page": "app/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/access-denied/page": "app/access-denied/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/help/page": "app/help/page.js",
+  "/auth/register/page": "app/auth/register/page.js",
+  "/auth/login/page": "app/auth/login/page.js",
+  "/privacy/page": "app/privacy/page.js",
+  "/reports/page": "app/reports/page.js",
+  "/platform/security/page": "app/platform/security/page.js",
+  "/platform/page": "app/platform/page.js",
+  "/auth/recovery/page": "app/auth/recovery/page.js",
+  "/settings/page": "app/settings/page.js",
+  "/urls/create/page": "app/urls/create/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/platform/performance/page": "app/platform/performance/page.js",
+  "/urls/page": "app/urls/page.js",
+  "/status/page": "app/status/page.js",
+  "/real-time/page": "app/real-time/page.js",
+  "/urls/bulk/page": "app/urls/bulk/page.js"
+}
