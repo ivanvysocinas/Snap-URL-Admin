@@ -74,67 +74,73 @@ Create `.env.local` file:
 # API Configuration
 NEXT_PUBLIC_API_URL=http://localhost:3001
 API_BASE_URL=http://localhost:3001
+```
 
 ## 📁 Project Structure
 
 ```
-├── __tests__/
-│   ├── accessibility/
-│   └── unit/
-├── app/
-│   ├── analytics/
-│   ├── auth/            
-│   ├── dashboard/       # Dashboard-specific components
-│   ├── help/
-│   ├── platform/
-│   ├── privacy/
-│   ├── profile/
-│   ├── real-time/
-│   ├── reports/
-│   ├── settings/
-│   ├── status/
-│   └── urls/
-│   globals.css
-│   layout.tsx
-│   page.tsx
-├── components/           # React components
-│   ├── analytics/
-│   ├── auth/
-│   ├── bulk/          
-│   ├── common/          # Shared components (Header, Sidebar, Layout)
-│   ├── createUrl/
-│   ├── dashboard/       # Dashboard-specific components
-│   ├── header/          # Header-specific components
-│   ├── help/
-│   ├── modals/          # Modal dialogs and overlays
-│   ├── platformOverview/
-│   ├── platformPerformance/
-│   ├── platformSecurity/
-│   ├── privacy/
-│   ├── profile/
-│   ├── recovery/
-│   ├── settings/
-│   ├── status/
-│   └── urls/
-│   Providers.tsx
-├── context/             # React Context providers
-│   ├── AuthContext.tsx  # Authentication state management
-│   └── ThemeContext.tsx # Theme and appearance settings
-├── hooks/               # Custom React hooks
-│   ├── useComingSoonModal.tsx
-│   ├── useDemoRestrictionModal.tsx
-│   ├── useOutsideClick.tsx
-│   └── useNotifications.tsx # Notification system
-├── lib/                 # Utility libraries
-│   └── api.ts           # API client and endpoints
-├── types/               # TypeScript type definitions
-│   ├── analytics.types.ts    
-│   ├── api.types.ts
-│   ├── header.types.ts  
-│   ├── index.ts         # Main type exports
-│   ├── ui.types.ts 
-│   ├── url.types.ts     # URL-related types
-│   └── user.types.ts    # User-related types
+├── __tests__/                      # Testing directory
+│   ├── accessibility/              # Accessibility (a11y) tests
+│   └── unit/                       # Unit tests for components and functions
+├── app/                            # Next.js App Router - main application pages
+│   ├── access-denied/              # Access denied error page
+│   ├── analytics/                  # URL analytics and statistics
+│   ├── auth/                       # Authentication pages (login, register, recovery)
+│   ├── dashboard/                  # Main dashboard panel
+│   ├── help/                       # Help and documentation page
+│   ├── platform/                   # Platform overview and system information
+│   ├── privacy/                    # Privacy policy page
+│   ├── profile/                    # User profile page
+│   ├── real-time/                  # Real-time monitoring page
+│   ├── reports/                    # Reports and data export page
+│   ├── settings/                   # Application settings page
+│   ├── status/                     # System status and uptime page
+│   └── urls/                       # URL management page
+│   globals.css                     # Global styles
+│   layout.tsx                      # Root layout component
+│   not-found.tsx                   # 404 page route handler
+│   NotFoundContent.tsx             # 404 page content component
+│   page.tsx                        # Homepage
+├── components/                     # React components library
+│   ├── access-denied/              # Access denied page components
+│   ├── analytics/                  # Analytics-related components
+│   ├── auth/                       # Authentication components
+│   ├── bulk/                       # Bulk operations components
+│   ├── common/                     # Shared components (Header, Sidebar, Layout)
+│   ├── createUrl/                  # URL creation form components
+│   ├── dashboard/                  # Dashboard-specific components
+│   ├── header/                     # Header-specific components
+│   ├── help/                       # Help page components
+│   ├── modals/                     # Modal dialogs and overlays
+│   ├── platformOverview/           # Platform overview components
+│   ├── platformPerformance/        # Performance monitoring components
+│   ├── platformSecurity/           # Security dashboard components
+│   ├── privacy/                    # Privacy policy components
+│   ├── profile/                    # User profile components
+│   ├── recovery/                   # Password recovery components
+│   ├── settings/                   # Settings page components
+│   ├── status/                     # System status components
+│   └── urls/                       # URL management components
+│   Providers.tsx                   # React context providers wrapper
+├── context/                        # React Context providers
+│   ├── AccessControlProvider.tsx   # Role-based access control provider
+│   ├── AuthContext.tsx             # Authentication state management
+│   └── ThemeContext.tsx            # Theme and appearance settings
+├── hooks/                          # Custom React hooks
+│   ├── useComingSoonModal.tsx      # Coming soon feature modal hook
+│   ├── useDemoRestrictionModal.tsx # Demo account restriction modal hook
+│   ├── useOutsideClick.tsx         # Detect clicks outside element
+│   └── useNotifications.tsx        # Notification system hook
+├── lib/                            # Utility libraries
+│   └── api.ts                      # API client and endpoint definitions
+├── types/                          # TypeScript type definitions
+│   ├── analytics.types.ts          # Analytics data types
+│   ├── api.types.ts                # API request/response types
+│   ├── header.types.ts             # Header component types
+│   ├── index.ts                    # Main type exports (barrel file)
+│   ├── ui.types.ts                 # UI component types
+│   ├── url.types.ts                # URL-related types
+│   └── user.types.ts               # User-related types
 └──
 ```
 
