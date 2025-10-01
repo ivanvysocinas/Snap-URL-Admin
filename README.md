@@ -74,6 +74,7 @@ Create `.env.local` file:
 # API Configuration
 NEXT_PUBLIC_API_URL=http://localhost:3001
 API_BASE_URL=http://localhost:3001
+```
 
 ## 📁 Project Structure
 
