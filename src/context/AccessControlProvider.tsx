@@ -57,7 +57,7 @@ export const AccessControlProvider: FC<AccessControlProviderProps> = ({
   /**
    * Public routes that don't require authentication
    */
-  const PUBLIC_ROUTES = ["/auth/login", "/auth/register", "/recovery"];
+  const PUBLIC_ROUTES = ["/auth/login", "/auth/register", "/auth/recovery"];
 
   /**
    * Check if current route is public
