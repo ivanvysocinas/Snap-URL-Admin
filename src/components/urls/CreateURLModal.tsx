@@ -2,7 +2,7 @@
 
 import { useState, FC } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Plus, Loader2, AlertCircle } from "lucide-react";
+import { X, Plus, Loader2, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useDemoRestriction } from "@/hooks/useDemoRestrictionModal";
 import { useAuth } from "@/context/AuthContext";
@@ -37,6 +37,8 @@ export const CreateURLModal: FC<CreateURLModalProps> = ({
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [apiError, setApiError] = useState<string>("");
   const { addNotification } = useNotifications();
   const { user } = useAuth();
   const { showDemoRestriction } = useDemoRestriction();
@@ -69,36 +71,104 @@ export const CreateURLModal: FC<CreateURLModalProps> = ({
   };
 
   /**
+   * Validate individual field in real-time
+   */
+  const validateField = (name: string, value: string): string => {
+    switch (name) {
+      case "originalUrl":
+        if (!value) return "URL is required";
+        if (!/^https?:\/\/.+\..+/.test(value))
+          return "Enter a valid URL (e.g., https://example.com)";
+        return "";
+      
+      case "customAlias":
+        if (!value) return "";
+        if (value.length < 3) return "Alias must be at least 3 characters";
+        if (value.length > 30) return "Alias must be less than 30 characters";
+        if (!/^[a-zA-Z0-9_-]+$/.test(value))
+          return "Only letters, numbers, hyphens and underscores allowed";
+        return "";
+      
+      case "title":
+        if (!value) return "";
+        if (value.length > 100) return "Title must be less than 100 characters";
+        return "";
+      
+      case "description":
+        if (!value) return "";
+        if (value.length > 500)
+          return "Description must be less than 500 characters";
+        return "";
+      
+      default:
+        return "";
+    }
+  };
+
+  /**
+   * Handle field change with real-time validation
+   */
+  const handleFieldChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Clear API error when user starts typing
+    if (apiError) setApiError("");
+    
+    if (touched[name]) {
+      const error = validateField(name, value);
+      setErrors((prev) => ({
+        ...prev,
+        [name]: error,
+      }));
+    }
+  };
+
+  /**
+   * Handle field blur to mark as touched
+   */
+  const handleFieldBlur = (name: string) => {
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    const error = validateField(name, formData[name as keyof typeof formData] as string);
+    setErrors((prev) => ({
+      ...prev,
+      [name]: error,
+    }));
+  };
+
+  /**
    * Validate form data before submission
    */
   const validateForm = (): boolean => {
+    const fields = ["originalUrl", "customAlias", "title", "description"];
     const newErrors: Record<string, string> = {};
+    const newTouched: Record<string, boolean> = {};
 
-    if (!formData.originalUrl) {
-      newErrors.originalUrl = "URL is required";
-    } else if (!/^https?:\/\/.+/.test(formData.originalUrl)) {
-      newErrors.originalUrl =
-        "Please enter a valid URL (must start with http:// or https://)";
-    }
+    fields.forEach((field) => {
+      newTouched[field] = true;
+      const error = validateField(
+        field,
+        formData[field as keyof typeof formData] as string
+      );
+      if (error) newErrors[field] = error;
+    });
 
-    if (
-      formData.customAlias &&
-      !/^[a-zA-Z0-9_-]{3,30}$/.test(formData.customAlias)
-    ) {
-      newErrors.customAlias =
-        "Custom alias must be 3-30 characters (letters, numbers, - and _ only)";
-    }
-
-    if (formData.title && formData.title.length > 100) {
-      newErrors.title = "Title must be less than 100 characters";
-    }
-
-    if (formData.description && formData.description.length > 500) {
-      newErrors.description = "Description must be less than 500 characters";
-    }
-
+    setTouched(newTouched);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  /**
+   * Check if form has any errors
+   */
+  const hasErrors = (): boolean => {
+    return Object.values(errors).some((error) => error !== "");
+  };
+
+  /**
+   * Check if required fields are filled
+   */
+  const isFormValid = (): boolean => {
+    return formData.originalUrl !== "" && !hasErrors();
   };
 
   /**
@@ -120,7 +190,7 @@ export const CreateURLModal: FC<CreateURLModalProps> = ({
     if (!validateForm()) return;
 
     setLoading(true);
-    setErrors({});
+    setApiError("");
 
     try {
       const createData: CreateUrlRequest = {
@@ -155,6 +225,9 @@ export const CreateURLModal: FC<CreateURLModalProps> = ({
           fetchMetadata: true,
           expiresIn: "",
         });
+        setTouched({});
+        setErrors({});
+        setApiError("");
         addNotification(
           "URL Created Successfully!",
           `Short URL created for: ${formData.originalUrl}`
@@ -164,15 +237,28 @@ export const CreateURLModal: FC<CreateURLModalProps> = ({
       }
     } catch (error) {
       console.error("Error creating URL:", error);
-      setErrors({
-        general:
-          error instanceof Error
-            ? error.message
-            : "Failed to create URL. Please try again.",
-      });
+      setApiError(
+        error instanceof Error
+          ? error.message
+          : "Failed to create URL. Please try again."
+      );
     } finally {
       setLoading(false);
     }
+  };
+
+  /**
+   * Get field status icon
+   */
+  const getFieldIcon = (fieldName: string) => {
+    if (!touched[fieldName]) return null;
+    if (errors[fieldName]) {
+      return <XCircle className="w-5 h-5 text-red-500" />;
+    }
+    if (formData[fieldName as keyof typeof formData]) {
+      return <CheckCircle2 className="w-5 h-5 text-green-500" />;
+    }
+    return null;
   };
 
   if (!isOpen) return null;
@@ -231,29 +317,44 @@ export const CreateURLModal: FC<CreateURLModalProps> = ({
             >
               Original URL *
             </label>
-            <input
-              type="url"
-              value={formData.originalUrl}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  originalUrl: e.target.value,
-                }))
-              }
-              className={`input-base ${errors.originalUrl ? "input-error" : ""}`}
-              placeholder="https://example.com/very-long-url"
-              required
-              disabled={loading}
-            />
-            {errors.originalUrl && (
-              <motion.p
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                className="text-red-500 text-xs mt-1"
-              >
-                {errors.originalUrl}
-              </motion.p>
-            )}
+            <div className="relative">
+              <input
+                type="url"
+                value={formData.originalUrl}
+                onChange={(e) =>
+                  handleFieldChange("originalUrl", e.target.value)
+                }
+                onBlur={() => handleFieldBlur("originalUrl")}
+                className={`input-base w-full pr-10 transition-all ${
+                  errors.originalUrl && touched.originalUrl
+                    ? "border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50 dark:bg-red-900/10"
+                    : formData.originalUrl && !errors.originalUrl && touched.originalUrl
+                      ? "border-green-500 focus:border-green-500 focus:ring-green-500 bg-green-50 dark:bg-green-900/10"
+                      : ""
+                }`}
+                placeholder="https://example.com/very-long-url"
+                required
+                disabled={loading}
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                {getFieldIcon("originalUrl")}
+              </div>
+            </div>
+            <AnimatePresence mode="wait">
+              {errors.originalUrl && touched.originalUrl && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex items-start space-x-2 mt-2 p-2 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+                >
+                  <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-red-600 dark:text-red-400 text-sm">
+                    {errors.originalUrl}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
 
           {/* Custom Alias */}
@@ -265,37 +366,60 @@ export const CreateURLModal: FC<CreateURLModalProps> = ({
             >
               Custom Alias (optional)
             </label>
-            <div className="flex">
-              <span
-                className={`inline-flex items-center px-3 border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm ${
-                  theme === "dark" ? "text-gray-400" : "text-gray-500"
-                } rounded-l-md`}
-              >
-                snap.ly/
-              </span>
-              <input
-                type="text"
-                value={formData.customAlias}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    customAlias: e.target.value,
-                  }))
-                }
-                className={`input-base rounded-l-none ${errors.customAlias ? "input-error" : ""}`}
-                placeholder="my-link"
-                disabled={loading}
-              />
+            <div className="relative">
+              <div className="flex">
+                <span
+                  className={`inline-flex items-center px-3 border border-r-0 ${
+                    errors.customAlias && touched.customAlias
+                      ? "border-red-500"
+                      : formData.customAlias && !errors.customAlias && touched.customAlias
+                        ? "border-green-500"
+                        : "border-gray-300 dark:border-gray-600"
+                  } bg-gray-50 dark:bg-gray-700 text-sm ${
+                    theme === "dark" ? "text-gray-400" : "text-gray-500"
+                  } rounded-l-md transition-all`}
+                >
+                  {process.env.NEXT_PUBLIC_API_URL}/
+                </span>
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={formData.customAlias}
+                    onChange={(e) =>
+                      handleFieldChange("customAlias", e.target.value)
+                    }
+                    onBlur={() => handleFieldBlur("customAlias")}
+                    className={`input-base rounded-l-none w-full pr-10 transition-all ${
+                      errors.customAlias && touched.customAlias
+                        ? "border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50 dark:bg-red-900/10"
+                        : formData.customAlias && !errors.customAlias && touched.customAlias
+                          ? "border-green-500 focus:border-green-500 focus:ring-green-500 bg-green-50 dark:bg-green-900/10"
+                          : ""
+                    }`}
+                    placeholder="my-link"
+                    disabled={loading}
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {getFieldIcon("customAlias")}
+                  </div>
+                </div>
+              </div>
             </div>
-            {errors.customAlias && (
-              <motion.p
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                className="text-red-500 text-xs mt-1"
-              >
-                {errors.customAlias}
-              </motion.p>
-            )}
+            <AnimatePresence mode="wait">
+              {errors.customAlias && touched.customAlias && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex items-start space-x-2 mt-2 p-2 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+                >
+                  <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-red-600 dark:text-red-400 text-sm">
+                    {errors.customAlias}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
 
           {/* Title */}
@@ -307,26 +431,49 @@ export const CreateURLModal: FC<CreateURLModalProps> = ({
             >
               Title (optional)
             </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, title: e.target.value }))
-              }
-              className={`input-base ${errors.title ? "input-error" : ""}`}
-              placeholder="Give your link a memorable title"
-              maxLength={100}
-              disabled={loading}
-            />
-            {errors.title && (
-              <motion.p
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                className="text-red-500 text-xs mt-1"
-              >
-                {errors.title}
-              </motion.p>
+            <div className="relative">
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) =>
+                  handleFieldChange("title", e.target.value)
+                }
+                onBlur={() => handleFieldBlur("title")}
+                className={`input-base w-full pr-10 transition-all ${
+                  errors.title && touched.title
+                    ? "border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50 dark:bg-red-900/10"
+                    : formData.title && !errors.title && touched.title
+                      ? "border-green-500 focus:border-green-500 focus:ring-green-500 bg-green-50 dark:bg-green-900/10"
+                      : ""
+                }`}
+                placeholder="Give your link a memorable title"
+                maxLength={100}
+                disabled={loading}
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                {getFieldIcon("title")}
+              </div>
+            </div>
+            {formData.title && (
+              <p className={`text-xs mt-1 ${theme === "dark" ? "text-gray-400" : "text-gray-500"}`}>
+                {formData.title.length}/100 characters
+              </p>
             )}
+            <AnimatePresence mode="wait">
+              {errors.title && touched.title && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex items-start space-x-2 mt-2 p-2 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+                >
+                  <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-red-600 dark:text-red-400 text-sm">
+                    {errors.title}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
 
           {/* Description */}
@@ -338,29 +485,49 @@ export const CreateURLModal: FC<CreateURLModalProps> = ({
             >
               Description (optional)
             </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  description: e.target.value,
-                }))
-              }
-              className={`input-base ${errors.description ? "input-error" : ""}`}
-              placeholder="Add a description for better organization"
-              rows={3}
-              maxLength={500}
-              disabled={loading}
-            />
-            {errors.description && (
-              <motion.p
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                className="text-red-500 text-xs mt-1"
-              >
-                {errors.description}
-              </motion.p>
+            <div className="relative">
+              <textarea
+                value={formData.description}
+                onChange={(e) =>
+                  handleFieldChange("description", e.target.value)
+                }
+                onBlur={() => handleFieldBlur("description")}
+                className={`input-base w-full pr-10 transition-all ${
+                  errors.description && touched.description
+                    ? "border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50 dark:bg-red-900/10"
+                    : formData.description && !errors.description && touched.description
+                      ? "border-green-500 focus:border-green-500 focus:ring-green-500 bg-green-50 dark:bg-green-900/10"
+                      : ""
+                }`}
+                placeholder="Add a description for better organization"
+                rows={3}
+                maxLength={500}
+                disabled={loading}
+              />
+              <div className="absolute right-3 top-3">
+                {getFieldIcon("description")}
+              </div>
+            </div>
+            {formData.description && (
+              <p className={`text-xs mt-1 ${theme === "dark" ? "text-gray-400" : "text-gray-500"}`}>
+                {formData.description.length}/500 characters
+              </p>
             )}
+            <AnimatePresence mode="wait">
+              {errors.description && touched.description && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex items-start space-x-2 mt-2 p-2 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+                >
+                  <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-red-600 dark:text-red-400 text-sm">
+                    {errors.description}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
 
           {/* Options */}
@@ -453,17 +620,24 @@ export const CreateURLModal: FC<CreateURLModalProps> = ({
             </div>
           </motion.div>
 
-          {/* General Error */}
+          {/* API Error */}
           <AnimatePresence>
-            {errors.general && (
+            {apiError && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="flex items-center space-x-2 text-red-500 text-sm"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="flex items-start space-x-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
               >
-                <AlertCircle className="w-4 h-4" />
-                <span>{errors.general}</span>
+                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-red-600 dark:text-red-400 text-sm font-medium">
+                    Error Creating URL
+                  </p>
+                  <p className="text-red-600 dark:text-red-400 text-sm mt-1">
+                    {apiError}
+                  </p>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -484,11 +658,15 @@ export const CreateURLModal: FC<CreateURLModalProps> = ({
               Cancel
             </motion.button>
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={!loading && isFormValid() ? { scale: 1.02 } : {}}
+              whileTap={!loading && isFormValid() ? { scale: 0.98 } : {}}
               type="submit"
-              className="btn-primary px-4 py-2 rounded-lg flex items-center space-x-2"
-              disabled={loading}
+              className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-all ${
+                loading || !isFormValid()
+                  ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed opacity-60"
+                  : "btn-primary"
+              }`}
+              disabled={loading || !isFormValid()}
             >
               {loading ? (
                 <>

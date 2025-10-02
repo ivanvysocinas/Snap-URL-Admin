@@ -97,10 +97,6 @@ export const AccessControlProvider: FC<AccessControlProviderProps> = ({
    * Perform access check on route change or auth state change
    */
   useEffect(() => {
-    console.log("AccessControl: Checking access for", pathname);
-    console.log("AccessControl: User role:", user?.role);
-    console.log("AccessControl: Is authenticated:", isAuthenticated);
-    console.log("AccessControl: Loading:", loading);
 
     // Skip check while auth is loading
     if (loading) {
@@ -108,12 +104,10 @@ export const AccessControlProvider: FC<AccessControlProviderProps> = ({
     }
 
     const access = checkAccess(pathname, user?.role);
-    console.log("AccessControl: Access granted:", access);
     setHasAccess(access);
 
     // Redirect to login if not authenticated and not on public route
     if (!isAuthenticated && !isPublicRoute(pathname)) {
-      console.log("AccessControl: Not authenticated, redirecting to login");
       router.replace("/auth/login");
     }
   }, [pathname, user?.role, isAuthenticated, loading, router]);

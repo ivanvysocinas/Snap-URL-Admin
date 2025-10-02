@@ -129,7 +129,7 @@ const UrlMobileCard: FC<UrlMobileCardProps> = ({ url, theme }) => {
             {url.originalUrl}
           </p>
           <p className="text-xs text-blue-500 font-mono mt-1">
-            snap.ly/{url.shortCode}
+            {process.env.NEXT_PUBLIC_API_URL}/{url.shortCode}
           </p>
         </div>
 
@@ -223,7 +223,7 @@ const UrlTableRow: FC<UrlTableRowProps> = ({ url, theme }) => {
             {url.originalUrl}
           </p>
           <p className="text-xs text-blue-500 font-mono">
-            snap.ly/{url.shortCode}
+            {process.env.NEXT_PUBLIC_API_URL}/{url.shortCode}
           </p>
         </div>
       </td>

@@ -172,7 +172,7 @@ describe("Header Component", () => {
         success: true,
         data: {
           results: [
-            { id: "url-1", title: "Test URL", shortUrl: "snap.ly/test" },
+            { id: "url-1", title: "Test URL", shortUrl: `${process.env.NEXT_PUBLIC_API_URL}/test` },
           ],
         },
       }),

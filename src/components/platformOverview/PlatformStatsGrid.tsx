@@ -51,7 +51,9 @@ export const PlatformStatsGrid: FC<PlatformStatsGridProps> = ({
   /**
    * Format large numbers with appropriate suffixes
    */
-  const formatNumber = (num: number): string => {
+  const formatNumber = (num?: number): string => {
+    if (num === undefined || num === null) return "0";
+    
     if (num >= 1000000) {
       return `${(num / 1000000).toFixed(1)}M`;
     }
@@ -64,7 +66,9 @@ export const PlatformStatsGrid: FC<PlatformStatsGridProps> = ({
   /**
    * Get trend indicator component with color and icon
    */
-  const getTrendIndicator = (growth: number) => {
+  const getTrendIndicator = (growth?: number) => {
+    if (growth === undefined || growth === null) return null;
+    
     const isPositive = growth >= 0;
     return (
       <div
@@ -107,16 +111,12 @@ export const PlatformStatsGrid: FC<PlatformStatsGridProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatsCard
           title="Total Users"
-          value={overview?.users.totalUsers || 0}
+          value={overview?.users.totalUsers ?? 0}
           subtitle="Registered accounts"
           icon={Users}
           color="blue"
-          growth={overview?.users.growth}
-          additionalInfo={
-            overview
-              ? `${formatNumber(overview.users.active)} active`
-              : undefined
-          }
+          {...(overview?.users.growth !== undefined && { growth: overview.users.growth })}
+          {...(overview?.users.active && { additionalInfo: `${formatNumber(overview.users.active)} active` })}
           theme={theme}
           loading={loading}
           formatNumber={formatNumber}
@@ -125,16 +125,12 @@ export const PlatformStatsGrid: FC<PlatformStatsGridProps> = ({
 
         <StatsCard
           title="Total URLs"
-          value={overview?.urls.totalUrls || 0}
+          value={overview?.urls.totalUrls ?? 0}
           subtitle="Shortened links"
           icon={Link}
           color="green"
-          growth={overview?.urls.growth}
-          additionalInfo={
-            overview
-              ? `${formatNumber(overview.urls.active)} active`
-              : undefined
-          }
+          {...(overview?.urls.growth !== undefined && { growth: overview.urls.growth })}
+          {...(overview?.urls.active && { additionalInfo: `${formatNumber(overview.urls.active)} active` })}
           theme={theme}
           loading={loading}
           formatNumber={formatNumber}
@@ -143,16 +139,12 @@ export const PlatformStatsGrid: FC<PlatformStatsGridProps> = ({
 
         <StatsCard
           title="Total Clicks"
-          value={overview?.clicks.totalClicks || 0}
+          value={overview?.clicks.totalClicks ?? 0}
           subtitle="All-time clicks"
           icon={MousePointer}
           color="purple"
-          growth={overview?.clicks.growth}
-          additionalInfo={
-            overview
-              ? `${formatNumber(overview.clicks.today)} today`
-              : undefined
-          }
+          {...(overview?.clicks.growth !== undefined && { growth: overview.clicks.growth })}
+          {...(overview?.clicks.today && { additionalInfo: `${formatNumber(overview.clicks.today)} today` })}
           theme={theme}
           loading={loading}
           formatNumber={formatNumber}
@@ -164,7 +156,7 @@ export const PlatformStatsGrid: FC<PlatformStatsGridProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatsCard
           title="New Users"
-          value={overview?.users.new || 0}
+          value={overview?.users.new ?? 0}
           subtitle="This period"
           icon={UserPlus}
           color="orange"
@@ -176,7 +168,7 @@ export const PlatformStatsGrid: FC<PlatformStatsGridProps> = ({
 
         <StatsCard
           title="New URLs"
-          value={overview?.urls.new || 0}
+          value={overview?.urls.new ?? 0}
           subtitle="This period"
           icon={Plus}
           color="indigo"
@@ -188,7 +180,7 @@ export const PlatformStatsGrid: FC<PlatformStatsGridProps> = ({
 
         <StatsCard
           title="Active Users"
-          value={overview?.users.active || 0}
+          value={overview?.users.active ?? 0}
           subtitle="Recent activity"
           icon={Activity}
           color="teal"
@@ -211,12 +203,12 @@ interface StatsCardProps {
   subtitle: string;
   icon: ElementType;
   color: string;
-  growth?: number | undefined;
-  additionalInfo?: string | undefined;
+  growth?: number;
+  additionalInfo?: string;
   theme: string;
   loading: boolean;
-  formatNumber: (num: number) => string;
-  getTrendIndicator: (growth: number) => JSX.Element;
+  formatNumber: (num?: number) => string;
+  getTrendIndicator: (growth?: number) => JSX.Element | null;
 }
 
 const StatsCard: FC<StatsCardProps> = ({
@@ -252,7 +244,7 @@ const StatsCard: FC<StatsCardProps> = ({
           theme === "dark" ? "text-white" : "text-gray-900"
         }`}
       >
-        {loading ? "..." : value ? formatNumber(value) : "0"}
+        {loading ? "..." : formatNumber(value)}
       </h3>
 
       <p

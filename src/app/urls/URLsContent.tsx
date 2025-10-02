@@ -815,7 +815,7 @@ const URLsContent: FC = () => {
                     onUpdate={(updates: UpdateUrlRequest) =>
                       handleUpdateUrl(url._id, updates)
                     }
-                    onCopy={() => handleCopyUrl(`snap.ly/${url.shortCode}`)}
+                    onCopy={() => handleCopyUrl(`${process.env.NEXT_PUBLIC_API_URL}/${url.shortCode}`)}
                     onGenerateQR={() => handleGenerateQR(url._id)}
                     theme={theme}
                   />

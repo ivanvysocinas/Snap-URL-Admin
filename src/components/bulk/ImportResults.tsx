@@ -150,7 +150,7 @@ export const ImportResults: FC<ImportResultsProps> = ({ results }) => {
               >
                 <div className="flex-1 min-w-0">
                   <span className="font-mono text-blue-600 dark:text-blue-400 text-xs">
-                    snap.ly/{url.shortCode}
+                    {process.env.NEXT_PUBLIC_API_URL}/{url.shortCode}
                   </span>
                   <span className="text-gray-700 dark:text-gray-300 ml-2 truncate">
                     {url.title || url.originalUrl}

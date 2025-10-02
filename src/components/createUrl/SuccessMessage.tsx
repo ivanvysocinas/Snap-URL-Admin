@@ -33,13 +33,13 @@ export const SuccessMessage: FC<SuccessMessageProps> = ({
         </p>
         <div className="flex items-center space-x-3 mt-2">
           <span className="font-mono text-sm text-blue-600 dark:text-blue-400">
-            snap.ly/{createdUrl.shortCode}
+            {process.env.NEXT_PUBLIC_API_URL}/{createdUrl.shortCode}
           </span>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() =>
-              api.utils.copyToClipboard(`snap.ly/${createdUrl.shortCode}`)
+              api.utils.copyToClipboard(`${process.env.NEXT_PUBLIC_API_URL}/${createdUrl.shortCode}`)
             }
             className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
           >

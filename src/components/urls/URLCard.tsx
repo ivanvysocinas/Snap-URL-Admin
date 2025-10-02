@@ -110,7 +110,7 @@ export const URLCard: FC<URLCardProps> = ({
     setLoading(true);
     try {
       const success = await api.utils.copyToClipboard(
-        `snap.ly/${url.shortCode}`
+        `${process.env.NEXT_PUBLIC_API_URL}/${url.shortCode}`
       );
       if (success) {
         setCopied(true);
@@ -383,7 +383,7 @@ export const URLCard: FC<URLCardProps> = ({
           >
             <LinkIcon className="w-4 h-4 text-blue-500 flex-shrink-0" />
             <span className="font-mono text-blue-500 text-sm break-all">
-              {`snap.ly/${url.shortCode}`}
+              {`${process.env.NEXT_PUBLIC_API_URL}/${url.shortCode}`}
             </span>
           </motion.div>
 
@@ -550,7 +550,7 @@ export const URLCard: FC<URLCardProps> = ({
                   >
                     <LinkIcon className="w-4 h-4 text-blue-500" />
                     <span className="font-mono text-blue-500 hover:text-blue-600">
-                      {`snap.ly/${url.shortCode}`}
+                      {`${process.env.NEXT_PUBLIC_API_URL}/${url.shortCode}`}
                     </span>
                   </motion.div>
 
@@ -792,7 +792,7 @@ export const URLCard: FC<URLCardProps> = ({
         {showQRModal && url.qrCode && (
           <QRModal
             qrCode={url.qrCode}
-            shortUrl={`snap.ly/${url.shortCode}`}
+            shortUrl={`${process.env.NEXT_PUBLIC_API_URL}/${url.shortCode}`}
             title={typeof url.title === "string" ? url.title : ""}
             onClose={() => setShowQRModal(false)}
             theme={theme}

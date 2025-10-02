@@ -56,27 +56,21 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
    */
   useEffect(() => {
     const checkAuth = async (): Promise<void> => {
-      console.log("AuthContext: Starting auth check...");
       try {
         const token = localStorage.getItem("authToken");
-        console.log("AuthContext: Token found:", !!token);
 
         if (!token) {
-          console.log("AuthContext: No token, setting loading to false");
           setLoading(false);
           return;
         }
 
         // Validate token with real API
-        console.log("AuthContext: Validating token with API...");
         const response = await api.auth.validate();
 
         if (response.success && response.data?.user) {
-          console.log("AuthContext: Token valid, setting user data");
           setUser(response.data.user);
           setIsAuthenticated(true);
         } else {
-          console.log("AuthContext: Token validation failed");
           localStorage.removeItem("authToken");
           setError("Session expired. Please login again.");
         }
@@ -88,7 +82,6 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
           setError("Authentication check failed. Please try again.");
         }
       } finally {
-        console.log("AuthContext: Setting loading to false");
         setLoading(false);
       }
     };

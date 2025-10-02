@@ -61,28 +61,32 @@ export const SystemHealthCard: FC<SystemHealthProps> = ({
   /**
    * Format uptime percentage
    */
-  const formatUptime = (uptime: number): string => {
+  const formatUptime = (uptime?: number): string => {
+    if (uptime === undefined) return "N/A";
     return `${uptime.toFixed(2)}%`;
   };
 
   /**
    * Format response time in milliseconds
    */
-  const formatResponseTime = (time: number): string => {
+  const formatResponseTime = (time?: number): string => {
+    if (time === undefined) return "N/A";
     return `${time}ms`;
   };
 
   /**
    * Format error rate as percentage
    */
-  const formatErrorRate = (rate: number): string => {
+  const formatErrorRate = (rate?: number): string => {
+    if (rate === undefined) return "N/A";
     return `${(rate * 100).toFixed(3)}%`;
   };
 
   /**
    * Format requests per minute with K suffix
    */
-  const formatRPM = (rpm: number): string => {
+  const formatRPM = (rpm?: number): string => {
+    if (rpm === undefined) return "N/A";
     if (rpm >= 1000) {
       return `${(rpm / 1000).toFixed(1)}k/min`;
     }

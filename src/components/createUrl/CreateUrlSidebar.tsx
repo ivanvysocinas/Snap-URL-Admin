@@ -191,7 +191,7 @@ export const CreateUrlSidebar: FC<CreateUrlSidebarProps> = () => {
                     {url.title || "Untitled"}
                   </p>
                   <p className="text-blue-500 font-mono text-xs truncate">
-                    snap.ly/{url.shortCode}
+                    {process.env.NEXT_PUBLIC_API_URL}/{url.shortCode}
                   </p>
                 </div>
                 <span className="text-gray-600 dark:text-gray-400 ml-2 flex-shrink-0">
