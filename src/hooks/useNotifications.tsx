@@ -1,6 +1,6 @@
 /**
  * Comprehensive notification system with localStorage persistence
- * Features real-time updates, automatic time formatting, and notification management
+ * Features real-time updates, automatic time formatting, and user-isolated storage
  */
 import {
   useState,
@@ -10,6 +10,7 @@ import {
   useContext,
   FC,
 } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 export interface Notification {
   id: string;
@@ -20,42 +21,72 @@ export interface Notification {
   read: boolean;
 }
 
-const STORAGE_KEY = "app_notifications";
 const MAX_VISIBLE_NOTIFICATIONS = 4;
 
 /**
- * Core notification management logic with localStorage persistence
+ * Get storage key for current user
+ * Requires authenticated user - throws error if userId is undefined
+ */
+const getStorageKey = (userId: string): string => {
+  return `notifications_${userId}`;
+};
+
+/**
+ * Core notification management logic with user-isolated localStorage persistence
  * Handles CRUD operations, time formatting, and automatic cleanup
  */
 const useNotificationsLogic = () => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>();
 
-  // Load notifications from localStorage on mount
+  // Load notifications from localStorage when user changes
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setNotifications(parsed);
-      }
-    } catch (error) {
-      console.error("Error loading notifications from localStorage:", error);
-    } finally {
+    const userId = user?.id;
+
+    // Only work with authenticated users
+    if (!userId) {
+      setNotifications([]);
       setIsLoading(false);
+      setCurrentUserId(undefined);
+      return;
     }
-  }, []);
+
+    // If user changed or first load, reset and load new notifications
+    if (userId !== currentUserId) {
+      setIsLoading(true);
+
+      try {
+        const storageKey = getStorageKey(userId);
+        const stored = localStorage.getItem(storageKey);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setNotifications(parsed);
+        } else {
+          setNotifications([]);
+        }
+      } catch (error) {
+        console.error("Error loading notifications from localStorage:", error);
+        setNotifications([]);
+      } finally {
+        setIsLoading(false);
+        setCurrentUserId(userId);
+      }
+    }
+  }, [user?.id, currentUserId]);
 
   // Persist notifications to localStorage when changed
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && currentUserId) {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications));
+        const storageKey = getStorageKey(currentUserId);
+        localStorage.setItem(storageKey, JSON.stringify(notifications));
       } catch (error) {
         console.error("Error saving notifications to localStorage:", error);
       }
     }
-  }, [notifications, isLoading]);
+  }, [notifications, isLoading, currentUserId]);
 
   const generateId = useCallback((): string => {
     return `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -83,6 +114,12 @@ const useNotificationsLogic = () => {
 
   const addNotification = useCallback(
     (title: string, message: string) => {
+      // Only allow notifications for authenticated users
+      if (!currentUserId) {
+        console.warn("Cannot add notification: user not authenticated");
+        return undefined;
+      }
+
       const timestamp = Date.now();
       const newNotification: Notification = {
         id: generateId(),
@@ -101,7 +138,7 @@ const useNotificationsLogic = () => {
 
       return newNotification.id;
     },
-    [generateId, formatTime]
+    [generateId, formatTime, currentUserId]
   );
 
   const markAsRead = useCallback((id: string) => {
@@ -169,8 +206,10 @@ const NotificationsContext = createContext<ReturnType<
 > | null>(null);
 
 /**
- * Global notifications provider with real-time updates
+ * Global notifications provider with real-time updates and user isolation
  * Enables notification functionality across the entire application
+ * Automatically switches notification storage when user changes
+ * Requires user authentication to function
  */
 export const NotificationsProvider: FC<{ children: React.ReactNode }> = ({
   children,

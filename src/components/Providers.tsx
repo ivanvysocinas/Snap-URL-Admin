@@ -17,16 +17,16 @@ interface ProvidersProps {
  */
 export default function Providers({ children }: ProvidersProps): JSX.Element {
   return (
-    <DemoRestrictionProvider>
-      <NotificationsProvider>
-        <ThemeProvider>
-          <AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <DemoRestrictionProvider>
+          <NotificationsProvider>
             <AccessControlProvider>
               <ComingSoonProvider>{children}</ComingSoonProvider>
             </AccessControlProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </NotificationsProvider>
-    </DemoRestrictionProvider>
+          </NotificationsProvider>
+        </DemoRestrictionProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

@@ -76,6 +76,16 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 API_BASE_URL=http://localhost:3001
 ```
 
+## 🎭 Demo Access
+Want to explore SnapURL without registration? Use our demo account:
+
+```
+Email:    demo@snapurl.dev
+Password: Demo123
+```
+
+> **Note:** The demo account has read-only access with limited functionality. Create your own account to unlock all features.
+
 ## 📁 Project Structure
 
 ```
