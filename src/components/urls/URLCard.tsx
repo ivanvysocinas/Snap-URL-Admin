@@ -110,8 +110,9 @@ export const URLCard: FC<URLCardProps> = ({
     setLoading(true);
     try {
       const success = await api.utils.copyToClipboard(
-        `${process.env.NEXT_PUBLIC_API_URL}/${url.shortCode}`
+        `${process.env.NEXT_PUBLIC_API_URL?.replace(/^https?:\/\//, '')}/${url.shortCode}`
       );
+      console.log(`${process.env.NEXT_PUBLIC_API_URL?.replace(/^https?:\/\//, '')}/${url.shortCode}`)
       if (success) {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -550,7 +551,7 @@ export const URLCard: FC<URLCardProps> = ({
                   >
                     <LinkIcon className="w-4 h-4 text-blue-500" />
                     <span className="font-mono text-blue-500 hover:text-blue-600">
-                      {`${process.env.NEXT_PUBLIC_API_URL}/${url.shortCode}`}
+                      {`${process.env.NEXT_PUBLIC_API_URL?.replace(/^https?:\/\//, "")}/${url.shortCode}`}
                     </span>
                   </motion.div>
 
@@ -735,7 +736,7 @@ export const URLCard: FC<URLCardProps> = ({
                           setShowActions(false);
                           addNotification(
                             "URL Deleted Successfully!",
-                            `Deleted short URL: ${url.shortUrl}`
+                            `Deleted short URL: ${process.env.NEXT_PUBLIC_API_URL}/${url.shortCode}`
                           );
                         }}
                         className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-red-600"

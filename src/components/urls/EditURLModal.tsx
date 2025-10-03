@@ -86,7 +86,7 @@ export const EditURLModal: FC<EditURLModalProps> = ({
       onSuccess(updates);
       addNotification(
         "URL updated Successfully!",
-        `Short URL has been updated: ${url.shortUrl}`
+        `Short URL has been updated: ${process.env.NEXT_PUBLIC_API_URL}/${url.shortCode}`
       );
     } catch (err) {
       setErrors({ general: "Failed to update URL" });
