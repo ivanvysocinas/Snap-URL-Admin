@@ -132,6 +132,9 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
   const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d" | "90d">(
     "90d"
   );
+  const totalUniqueVisitors = analyticsData?.traffic.clicksByDay.reduce((sum, day) => {
+  return sum + day.uniqueVisitors;
+}, 0);
 
   /**
    * Fetch analytics data for the specific URL
@@ -605,6 +608,7 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
             performance={analyticsData?.performance}
             theme={theme}
             loading={refreshing}
+            uniqueVisitors={totalUniqueVisitors || 0}
           />
         </div>
 

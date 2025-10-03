@@ -39,6 +39,7 @@ interface UrlOverviewCardsProps {
     | undefined;
   theme: string;
   loading: boolean;
+  uniqueVisitors: number;
 }
 
 export const UrlOverviewCards: FC<UrlOverviewCardsProps> = ({
@@ -46,6 +47,7 @@ export const UrlOverviewCards: FC<UrlOverviewCardsProps> = ({
   performance,
   theme,
   loading,
+  uniqueVisitors,
 }) => {
   const cards = [
     {
@@ -58,7 +60,7 @@ export const UrlOverviewCards: FC<UrlOverviewCardsProps> = ({
     },
     {
       title: "Unique Visitors",
-      value: overview?.uniqueVisitors || 0,
+      value: uniqueVisitors || 0,
       change: 0,
       icon: Users,
       color: "green",
