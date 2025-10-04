@@ -54,7 +54,7 @@ Professional URL shortening service administration panel with advanced analytics
 
 ```bash
 # Clone repository
-git clone https://github.com/Toxicyy/Snap-URL-ADMIN
+git clone https://github.com/Toxicyy/Snap-URL-Admin
 
 # Install dependencies
 npm install
@@ -72,8 +72,7 @@ Create `.env.local` file:
 
 ```env
 # API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:3001
-API_BASE_URL=http://localhost:3001
+NEXT_PUBLIC_API_URL=https://snapurl.uk
 ```
 
 ## 🎭 Demo Access
@@ -336,8 +335,6 @@ npm run prepare          # Setup hooks
 - **TypeScript**: Strict mode enabled
 - **ESLint**: Extended configuration with accessibility rules
 - **Prettier**: Consistent code formatting
-
-## 🆘 Support
 
 ### Documentation
 - [API Documentation](https://snap-url-api-production.up.railway.app/api-docs/)
