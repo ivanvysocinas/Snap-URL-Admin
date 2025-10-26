@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     "Create your SnapURL account to start shortening URLs, tracking analytics, and managing your links efficiently.",
   keywords: "SnapURL, URL shortener, sign up, create account, registration",
   robots: {
-    index: false, // Don't index auth pages
+    index: false,
     follow: false,
   },
 };

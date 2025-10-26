@@ -8,8 +8,8 @@ export const metadata: Metadata = {
     "Sign in to your SnapURL admin account to manage your shortened URLs and view analytics.",
   keywords: "SnapURL, URL shortener, admin login, authentication, dashboard",
   robots: {
-    index: false,
-    follow: false,
+    index: true,
+    follow: true,
   },
 };
 

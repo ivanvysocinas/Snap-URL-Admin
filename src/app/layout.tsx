@@ -34,14 +34,14 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://admin.snapurl.dev"),
+  metadataBase: new URL("https://app.snapurl.dev"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://admin.snapurl.dev",
+    url: "https://app.snapurl.dev",
     siteName: "SnapURL Admin",
     title: "SnapURL Admin - Professional URL Management",
     description:
@@ -76,7 +76,7 @@ export const metadata: Metadata = {
   },
   verification: {
     google: "your-google-verification-code",
-    yandex: "your-yandex-verification-code",
+    yandex: "6261416f336707bf",
   },
   manifest: "/manifest.json",
   icons: {
