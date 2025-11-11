@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   keywords: "SnapURL, URL shortener, sign up, create account, registration",
   robots: {
     index: false,
-    follow: false,
+    follow: true,
   },
 };
 

@@ -83,7 +83,7 @@ const PlatformOverviewContent: FC = () => {
   const [platformData, setPlatformData] = useState<PlatformData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d" | "90d">(
+  const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d" | "all">(
     "30d"
   );
 
@@ -114,8 +114,8 @@ const PlatformOverviewContent: FC = () => {
         case "30d":
           startDate.setDate(startDate.getDate() - 30);
           break;
-        case "90d":
-          startDate.setDate(startDate.getDate() - 90);
+        case "all":
+          startDate.setDate(startDate.getDate() - 3650);
           break;
       }
 
@@ -272,7 +272,7 @@ const PlatformOverviewContent: FC = () => {
       { value: "24h" as const, label: "24H" },
       { value: "7d" as const, label: "7D" },
       { value: "30d" as const, label: "30D" },
-      { value: "90d" as const, label: "90D" },
+      { value: "all" as const, label: "All" },
     ];
 
     return (

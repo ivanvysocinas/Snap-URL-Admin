@@ -3,8 +3,8 @@
 import { FC } from "react";
 
 interface TimeRangeSelectorProps {
-  currentRange: "24h" | "7d" | "30d" | "90d";
-  onChange: (range: "24h" | "7d" | "30d" | "90d") => void;
+  currentRange: "24h" | "7d" | "30d" | "all";
+  onChange: (range: "24h" | "7d" | "30d" | "all") => void;
   theme: string;
 }
 
@@ -21,7 +21,7 @@ export const TimeRangeSelector: FC<TimeRangeSelectorProps> = ({
     { value: "24h" as const, label: "24H" },
     { value: "7d" as const, label: "7D" },
     { value: "30d" as const, label: "30D" },
-    { value: "90d" as const, label: "90D" },
+    { value: "all" as const, label: "All" },
   ];
 
   return (

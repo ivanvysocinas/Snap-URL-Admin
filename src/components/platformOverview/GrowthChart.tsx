@@ -24,7 +24,7 @@ interface TrendData {
 interface GrowthChartProps {
   trends: TrendData[];
   theme: string;
-  timeRange: "24h" | "7d" | "30d" | "90d";
+  timeRange: "24h" | "7d" | "30d" | "all";
   loading?: boolean;
 }
 
@@ -55,7 +55,7 @@ export const GrowthChart: FC<GrowthChartProps> = ({
           weekday: "short",
         });
       case "30d":
-      case "90d":
+      case "all":
         return date.toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
@@ -83,8 +83,8 @@ export const GrowthChart: FC<GrowthChartProps> = ({
         return "Last 7 Days";
       case "30d":
         return "Last 30 Days";
-      case "90d":
-        return "Last 90 Days";
+      case "all":
+        return "All days";
       default:
         return "Growth Trends";
     }
