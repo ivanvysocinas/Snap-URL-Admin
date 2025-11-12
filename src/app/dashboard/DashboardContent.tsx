@@ -90,7 +90,6 @@ const DashboardContent: FC = () => {
         limit: 20,
       };
 
-      // Отправляем полные ISO строки с временем
       const startDateString = startDate.toISOString();
       const endDateString = endDate.toISOString();
 
@@ -100,8 +99,6 @@ const DashboardContent: FC = () => {
       if (endDateString) {
         params.endDate = endDateString;
       }
-
-      console.log("Dashboard date range params:", params); // Для отладки
 
       const response = await api.analytics.getDashboard(params);
 

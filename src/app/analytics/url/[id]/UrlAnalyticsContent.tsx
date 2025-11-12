@@ -23,6 +23,17 @@ import { ReferrerAnalytics } from "../../../../components/analytics/ReferrerAnal
 import { QRCodeDisplay } from "../../../../components/analytics/QRCodeDisplay";
 import { RealtimeStats } from "../../../../components/analytics/RealtimeStats";
 import { TimeRangeSelector } from "@/components/dashboard/TimeRangeSelector";
+import { Socket } from "socket.io-client";
+import io from "socket.io-client";
+
+// Типизация для real-time обновлений из Socket.io
+interface RealtimeUpdate {
+  clicksLast5Minutes: number;
+  clicksLastHour: number;
+  activeCountries: string[];
+  uniqueVisitorsLastHour: number;
+  lastUpdated: string;
+}
 
 interface UrlAnalyticsData {
   url: {
@@ -101,6 +112,7 @@ interface UrlAnalyticsData {
     clicksLast5Minutes: number;
     clicksLastHour: number;
     activeCountries: Array<string>;
+    uniqueVisitorsLastHour: number;
     lastUpdated: string;
   };
   dateRange: {
@@ -132,9 +144,76 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
   const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d" | "all">(
     "all"
   );
-  const totalUniqueVisitors = analyticsData?.traffic.clicksByDay.reduce((sum, day) => {
-  return sum + day.uniqueVisitors;
-}, 0);
+  const [_socket, setSocket] = useState<Socket | null>(null);
+
+  const totalUniqueVisitors = analyticsData?.traffic.clicksByDay.reduce(
+    (sum, day) => {
+      return sum + day.uniqueVisitors;
+    },
+    0
+  );
+
+  /**
+   * Socket.io setup
+   */
+  useEffect(() => {
+  if (!analyticsData?.url.shortUrl) {
+    return;
+  }
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const shortCode = analyticsData.url.shortUrl.replace(baseUrl + '/', '');
+
+  if (!shortCode || shortCode === analyticsData.url.shortUrl) {
+    console.log('Failed to extract shortCode');
+    return;
+  }
+
+  const newSocket = io(baseUrl, {
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionAttempts: 5,
+    transports: ['websocket', 'polling'],
+  });
+
+  newSocket.on("connect", () => {
+    newSocket.emit("subscribe:url", shortCode);
+  });
+
+  newSocket.on("connect_error", (error) => {
+    console.error("Connection error:", error);
+  });
+
+  newSocket.on("realtime:update", (data: RealtimeUpdate) => {
+    setAnalyticsData((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        realTime: {
+          clicksLast5Minutes: data.clicksLast5Minutes,
+          clicksLastHour: data.clicksLastHour,
+          activeCountries: data.activeCountries,
+          uniqueVisitorsLastHour: data.uniqueVisitorsLastHour,
+          lastUpdated: data.lastUpdated,
+        },
+      };
+    });
+  });
+
+  newSocket.on("disconnect", (reason) => {
+    console.log("Disconnected:", reason);
+  });
+
+  newSocket.on("error", (error) => {
+    console.error("Socket error:", error);
+  });
+
+  setSocket(newSocket);
+
+  return () => {
+    newSocket.emit("unsubscribe:url", shortCode);
+    newSocket.disconnect();
+  };
+}, [analyticsData?.url.shortUrl]);
 
   /**
    * Fetch analytics data for the specific URL
@@ -173,20 +252,19 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
           break;
       }
 
-      // Отправляем полные ISO строки с временем
       const params = {
-        startDate: startDate.toISOString(), // Полная дата с временем
-        endDate: endDate.toISOString(), // Полная дата с временем
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
         excludeBots: true,
         includeRealTime: true,
       };
 
-      console.log("Date range params:", params); // Для отладки
+      console.log("Date range params:", params);
 
       const response = await api.analytics.getUrlAnalytics(urlId, params);
 
       if (response.success && response.data) {
-        console.log("Raw API response:", response.data); // Для отладки
+        console.log("Raw API response:", response.data);
 
         // Transform API response to match our interface
         const transformedData: UrlAnalyticsData = {
@@ -245,11 +323,14 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
               response.data.performance?.trendDirection || "stable",
             growthRate: response.data.performance?.growthRate || 0,
           },
-          realTime: response.data.realTime || {
-            clicksLast5Minutes: 0,
-            clicksLastHour: 0,
-            activeCountries: [],
-            lastUpdated: new Date().toISOString(),
+          realTime: {
+            clicksLast5Minutes: response.data.realTime?.clicksLast5Minutes || 0,
+            clicksLastHour: response.data.realTime?.clicksLastHour || 0,
+            activeCountries: response.data.realTime?.activeCountries || [],
+            uniqueVisitorsLastHour:
+              response.data.realTime?.uniqueVisitorsLastHour || 0,
+            lastUpdated:
+              response.data.realTime?.lastUpdated || new Date().toISOString(),
           },
           dateRange: response.data.dateRange || {
             startDate: startDate.toISOString(),
@@ -257,7 +338,7 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
           },
         };
 
-        console.log("Transformed data traffic:", transformedData.traffic); // Для отладки
+        console.log("Transformed data traffic:", transformedData.traffic);
         setAnalyticsData(transformedData);
       } else {
         throw new Error(response.message || "Failed to fetch analytics data");
@@ -310,7 +391,6 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
       });
 
       if (response.success) {
-        // Handle CSV download
         const blob = new Blob([response.data], { type: "text/csv" });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -341,9 +421,7 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        // Fallback: copy to clipboard
         await navigator.clipboard.writeText(window.location.href);
-        // You could show a toast notification here
       }
     } catch (err) {
       console.error("Error sharing:", err);
@@ -358,7 +436,6 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
         description="Loading analytics data..."
       >
         <div className="space-y-6">
-          {/* Loading skeleton */}
           {[...Array(4)].map((_, i) => (
             <div key={i} className="card p-6">
               <div className="animate-pulse space-y-3">
@@ -393,7 +470,6 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
                   : "bg-white border-red-200"
               } border-2`}
             >
-              {/* Icon with animation */}
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -415,7 +491,6 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
                 </div>
               </motion.div>
 
-              {/* Title */}
               <motion.h3
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -427,7 +502,6 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
                 URL Not Found
               </motion.h3>
 
-              {/* Info box */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -456,7 +530,6 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
                 </ul>
               </motion.div>
 
-              {/* Action buttons */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -592,7 +665,7 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
           </div>
         </div>
 
-        {/* Real-time stats */}
+        {/* Real-time stats - обновляются через Socket.io */}
         <div className="mb-6">
           <RealtimeStats
             realTimeData={analyticsData?.realTime}
@@ -614,7 +687,6 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
 
         {/* Charts row */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
-          {/* Traffic chart - takes 2 columns */}
           <div className="xl:col-span-2">
             <UrlTrafficChart
               trafficData={analyticsData?.traffic}
@@ -623,7 +695,6 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
             />
           </div>
 
-          {/* QR Code display */}
           <div>
             <QRCodeDisplay url={analyticsData?.url} theme={theme} />
           </div>

@@ -156,6 +156,7 @@ export interface RealTimeStats {
   activeCountries: string[];
   liveVisitors: number;
   lastUpdated: string;
+  uniqueVisitorsLastHour: number;
 }
 
 /**
