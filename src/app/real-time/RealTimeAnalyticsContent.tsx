@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, FC } from "react";
+import { useState, useEffect, FC } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity,
@@ -15,9 +15,10 @@ import {
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import { StatsCard } from "../../components/dashboard/StatsCards";
 import { useTheme } from "../../context/ThemeContext";
-import api from "../../lib/api";
 import { useComingSoon } from "@/hooks/useComingSoonModal";
 import { ChartCard } from "@/components/dashboard/ChartCard";
+import { Socket } from "socket.io-client";
+import { io } from "socket.io-client";
 
 /**
  * Real-time analytics data structure
@@ -52,8 +53,8 @@ const RealTimeAnalyticsContent: FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isAutoRefresh, setIsAutoRefresh] = useState<boolean>(true);
   const [timeWindow] = useState<5 | 15 | 30 | 60>(60);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [socket, setSocket] = useState<Socket | null>(null);
   const { showComingSoon } = useComingSoon();
 
   // Animation variants for live indicator
@@ -66,77 +67,71 @@ const RealTimeAnalyticsContent: FC = () => {
     },
   };
 
-  /**
-   * Fetches real-time analytics data from API
-   */
-  const fetchRealTimeData = useCallback(
-    async (showLoading = false) => {
-      try {
-        if (showLoading) {
-          setLoading(true);
-        }
-        setError(null);
-
-        const response = await api.analytics.getRealTime(timeWindow);
-
-        if (response.success && response.data) {
-          setRealTimeData(response.data);
-          setLastUpdate(new Date());
-        } else {
-          throw new Error(response.message || "Failed to fetch real-time data");
-        }
-      } catch (err) {
-        console.error("Error fetching real-time data:", err);
-        setError(
-          err instanceof Error ? err.message : "Failed to load real-time data"
-        );
-      } finally {
-        setLoading(false);
-      }
-    },
-    [timeWindow]
-  );
-
-  /**
-   * Sets up auto-refresh interval
-   */
   useEffect(() => {
-    if (isAutoRefresh) {
-      intervalRef.current = setInterval(() => {
-        fetchRealTimeData(false);
-      }, 10000);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    }
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    setLoading(false);
+    const newSocket = io(baseUrl, {
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
+      transports: ["websocket", "polling"],
+    });
+
+    newSocket.on("connect", () => {
+      newSocket.emit("subscribe:real-time");
+    });
+
+    newSocket.on("connect_error", (error) => {
+      console.error("Connection error:", error);
+    });
+
+    newSocket.on("real-time:analytics", (data: RealTimeData) => {
+      setRealTimeData(data);
+      setLastUpdate(new Date());
+    });
+
+    newSocket.on("disconnect", (reason) => {
+      console.log("Disconnected:", reason);
+    });
+
+    newSocket.on("error", (error) => {
+      console.error("Socket error:", error);
+    });
+
+    newSocket.on("real-time:error", (error) => {
+      console.error("Real-time error:", error);
+      setLoading(false);
+    });
+
+    setSocket(newSocket);
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      newSocket.emit("unsubscribe:real-time");
+      newSocket.disconnect();
     };
-  }, [isAutoRefresh, fetchRealTimeData]);
-
-  /**
-   * Initial data fetch on component mount
-   */
-  useEffect(() => {
-    fetchRealTimeData(true);
-  }, [fetchRealTimeData]);
-
-  /**
-   * Handles manual refresh button click
-   */
-  const handleManualRefresh = () => {
-    fetchRealTimeData(false);
-  };
+  }, []);
 
   /**
    * Toggles auto-refresh on/off
    */
   const toggleAutoRefresh = () => {
+    if (isAutoRefresh) {
+      socket?.emit("unsubscribe:real-time");
+      socket?.disconnect();
+    } else {
+      socket?.emit("subscribe:real-time");
+      socket?.connect();
+    }
     setIsAutoRefresh(!isAutoRefresh);
+  };
+
+  const handleRefresh = () => {
+    if (socket && socket.connected) {
+      setLoading(true);
+      socket.emit("request:real-time:current");
+    } else {
+      console.error("Socket not connected");
+    }
   };
 
   /**
@@ -205,7 +200,7 @@ const RealTimeAnalyticsContent: FC = () => {
               </div>
               <div className="mt-3 flex space-x-3">
                 <button
-                  onClick={handleManualRefresh}
+                  onClick={() => {}}
                   className="text-red-600 dark:text-red-400 text-sm hover:text-red-700 dark:hover:text-red-300 underline"
                 >
                   Try Again
@@ -256,6 +251,7 @@ const RealTimeAnalyticsContent: FC = () => {
                   e.preventDefault();
                   showComingSoon();
                 }}
+                onChange={() => {}}
                 onMouseDown={(e) => e.preventDefault()}
                 onKeyDown={(e) => e.preventDefault()}
                 className="input-base py-1 text-sm"
@@ -303,7 +299,7 @@ const RealTimeAnalyticsContent: FC = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={handleManualRefresh}
+              onClick={handleRefresh}
               className={`p-2 rounded-lg border transition-colors ${
                 theme === "dark"
                   ? "border-gray-700 hover:bg-gray-800 text-gray-400"
@@ -415,7 +411,7 @@ const RealTimeAnalyticsContent: FC = () => {
         <div className="mb-8">
           <ChartCard title="Real-time Summary" theme={theme}>
             {/* No Data State */}
-            {!realTimeData?.activeUrls?.length && !loading && (
+            {!realTimeData?.activeUrls?.length && !loading ? (
               <div className="text-center py-20">
                 <Activity
                   className={`w-16 h-16 mx-auto mb-4 ${
@@ -437,102 +433,103 @@ const RealTimeAnalyticsContent: FC = () => {
                   Waiting for live activity in the selected time window
                 </p>
               </div>
-            )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-white/20 py-2">
-              <div>
-                <h4
-                  className={`text-sm font-medium mb-3 ${
-                    theme === "dark" ? "text-gray-300" : "text-gray-700"
-                  }`}
-                >
-                  Activity Window
-                </h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span
-                      className={`text-sm ${
-                        theme === "dark" ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      Time Window:
-                    </span>
-                    <span
-                      className={`text-sm font-medium ${
-                        theme === "dark" ? "text-white" : "text-gray-900"
-                      }`}
-                    >
-                      {realTimeData?.timeWindow || `${timeWindow} minutes`}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span
-                      className={`text-sm ${
-                        theme === "dark" ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      Avg Clicks/Min:
-                    </span>
-                    <span
-                      className={`text-sm font-medium ${
-                        theme === "dark" ? "text-white" : "text-gray-900"
-                      }`}
-                    >
-                      {realTimeData?.statistics?.avgClicksPerMinute?.toFixed(
-                        1
-                      ) || "0"}
-                    </span>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-white/20 py-2">
+                <div>
+                  <h4
+                    className={`text-sm font-medium mb-3 ${
+                      theme === "dark" ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Activity Window
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span
+                        className={`text-sm ${
+                          theme === "dark" ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
+                        Time Window:
+                      </span>
+                      <span
+                        className={`text-sm font-medium ${
+                          theme === "dark" ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        {realTimeData?.timeWindow || `${timeWindow} minutes`}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span
+                        className={`text-sm ${
+                          theme === "dark" ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
+                        Avg Clicks/Min:
+                      </span>
+                      <span
+                        className={`text-sm font-medium ${
+                          theme === "dark" ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        {realTimeData?.statistics?.avgClicksPerMinute?.toFixed(
+                          1
+                        ) || "0"}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div>
-                <h4
-                  className={`text-sm font-medium mb-3 ${
-                    theme === "dark" ? "text-gray-300" : "text-gray-700"
-                  }`}
-                >
-                  Last Updated
-                </h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span
-                      className={`text-sm ${
-                        theme === "dark" ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      Server Time:
-                    </span>
-                    <span
-                      className={`text-sm font-medium ${
-                        theme === "dark" ? "text-white" : "text-gray-900"
-                      }`}
-                    >
-                      {realTimeData?.lastUpdated
-                        ? new Date(
-                            realTimeData.lastUpdated
-                          ).toLocaleTimeString()
-                        : "Unknown"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span
-                      className={`text-sm ${
-                        theme === "dark" ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      Status:
-                    </span>
-                    <span
-                      className={`text-sm font-medium ${
-                        isAutoRefresh ? "text-green-500" : "text-orange-500"
-                      }`}
-                    >
-                      {isAutoRefresh ? "Live" : "Paused"}
-                    </span>
+                <div>
+                  <h4
+                    className={`text-sm font-medium mb-3 ${
+                      theme === "dark" ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Last Updated
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span
+                        className={`text-sm ${
+                          theme === "dark" ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
+                        Server Time:
+                      </span>
+                      <span
+                        className={`text-sm font-medium ${
+                          theme === "dark" ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        {realTimeData?.lastUpdated
+                          ? new Date(
+                              realTimeData.lastUpdated
+                            ).toLocaleTimeString()
+                          : "Unknown"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span
+                        className={`text-sm ${
+                          theme === "dark" ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
+                        Status:
+                      </span>
+                      <span
+                        className={`text-sm font-medium ${
+                          isAutoRefresh ? "text-green-500" : "text-orange-500"
+                        }`}
+                      >
+                        {isAutoRefresh ? "Live" : "Paused"}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </ChartCard>
         </div>
       </DashboardLayout>
