@@ -129,8 +129,8 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d" | "90d">(
-    "90d"
+  const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d" | "all">(
+    "all"
   );
   const totalUniqueVisitors = analyticsData?.traffic.clicksByDay.reduce((sum, day) => {
   return sum + day.uniqueVisitors;
@@ -151,7 +151,7 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
 
       // Calculate date range based on selection
       const endDate = new Date();
-      endDate.setHours(23, 59, 59, 999); // Устанавливаем конец дня
+      endDate.setHours(23, 59, 59, 999);
 
       const startDate = new Date();
 
@@ -161,14 +161,14 @@ const UrlAnalyticsContent: FC<UrlAnalyticsContentProps> = ({ urlId }) => {
           break;
         case "7d":
           startDate.setDate(startDate.getDate() - 7);
-          startDate.setHours(0, 0, 0, 0); // Устанавливаем начало дня
+          startDate.setHours(0, 0, 0, 0);
           break;
         case "30d":
           startDate.setDate(startDate.getDate() - 30);
           startDate.setHours(0, 0, 0, 0);
           break;
-        case "90d":
-          startDate.setDate(startDate.getDate() - 90);
+        case "all":
+          startDate.setDate(startDate.getDate() - 3650);
           startDate.setHours(0, 0, 0, 0);
           break;
       }
