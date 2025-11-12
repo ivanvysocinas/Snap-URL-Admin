@@ -84,7 +84,7 @@ const PlatformOverviewContent: FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d" | "all">(
-    "30d"
+    "all"
   );
 
   const { MockDataSystem } = useMockDataNotification(theme);

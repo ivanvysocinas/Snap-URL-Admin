@@ -266,6 +266,7 @@ const Sidebar: FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
   };
 
   return (
+    console.log(isMobile, sidebarOpen),
     <>
       {/* Mobile backdrop with blur effect */}
       <AnimatePresence>

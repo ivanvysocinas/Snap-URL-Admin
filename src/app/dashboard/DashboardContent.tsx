@@ -47,7 +47,7 @@ const DashboardContent: FC = () => {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d" | "all">(
-    "30d"
+    "all"
   );
 
   /**

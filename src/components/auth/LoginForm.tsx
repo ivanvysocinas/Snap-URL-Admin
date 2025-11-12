@@ -106,6 +106,11 @@ const LoginForm = () => {
     await login(formData);
   };
 
+  const handleDemoLogin = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    await login({email: "demo@snapurl.dev", password: "Demo123"})
+  }
+
   // Show nothing while checking auth (prevents flash)
   if (isAuthenticated) {
     return null;
@@ -332,6 +337,16 @@ const LoginForm = () => {
           </button>
         </motion.div>
       </form>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.65 }}
+        className="text-center border transition-all duration-150 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 p-3 rounded-xl hover:rotate-1 hover:scale-105 cursor-pointer"
+        onClick={handleDemoLogin}
+      >
+        <p className="text-blue-700 dark:text-blue-300">Quick Demo Access</p>
+      </motion.div>
 
       {/* Register Link */}
       <motion.div
